@@ -5,8 +5,7 @@ import GithubProvider from 'next-auth/providers/github';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import type { JWT } from 'next-auth/jwt';
 import type { Session, User as NextAuthUser, Account } from 'next-auth';
-import bcrypt from 'bcryptjs';
-import { users, User } from '@/lib/users';
+import { verifyUser, createOrLinkOAuth } from '@/lib/users';
 
 export const authOptions: NextAuthOptions = {
   providers: [
@@ -27,35 +26,26 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials) return null;
         const { email, password } = credentials as { email: string; password: string };
-        const user = users.find((u) => u.email === email);
-        if (!user || !user.hashedPassword) return null;
-
-        const match = await bcrypt.compare(password, user.hashedPassword);
-        if (!match) return null;
-
-        return { id: user.id, email: user.email, name: user.name };
+        const res = await verifyUser(email, password);
+        if (res.ok && res.user) return res.user;
+        return null;
       },
     }),
   ],
 
   callbacks: {
-    async signIn({ user, account }: { user: NextAuthUser; account: Account | null }) {
-      if (account?.provider === 'google' || account?.provider === 'github') {
-        const existingUser = users.find((u) => u.email === user.email);
-        if (!existingUser) {
-          const newUser: User = {
-            id: (users.length + 1).toString(),
-            name: user.name || user.email?.split('@')[0] || 'User',
-            email: user.email!,
-            hashedPassword: '', 
-          };
-          users.push(newUser);
-          user.id = newUser.id;
-        } else {
-          user.id = existingUser.id;
+    async signIn({ user, account, profile, email }: any) {
+      if (account && (account.provider === 'google' || account.provider === 'github')) {
+        const provider = account.provider;
+        const providerAccountId = account.providerAccountId || account.id || profile?.id;
+        const userEmail = (email && (email as any).value) || user?.email || profile?.email;
+        if (!userEmail) return false;
+        const res = await createOrLinkOAuth({ email: String(userEmail), name: user?.name || profile?.name, provider, providerAccountId: String(providerAccountId) });
+        if (res.ok && res.user) {
+          (user as any).id = res.user.id;
         }
       }
-      return true; 
+      return true;
     },
 
     async jwt({ token, user }: { token: JWT; user?: NextAuthUser }) {

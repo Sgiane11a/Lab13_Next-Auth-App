@@ -1,0 +1,29 @@
+[
+  {
+    "id": "1763258021260",
+    "name": "gianella",
+    "email": "steyci@gmail.com",
+    "hashedPassword": "$2a$10$FEZ874b5EpiueYS3PDxo.OktGimKzKHlwfAWn1K5hPK.wIkrL4bXS",
+    "failedAttempts": 0,
+    "lockUntil": null,
+    "providerAccounts": []
+  },
+  {
+    "id": "1763258039622",
+    "name": "Steyci Gianella Cordova Apolinario",
+    "email": "steyci.cordova@tecsup.edu.pe",
+    "hashedPassword": null,
+    "failedAttempts": 0,
+    "lockUntil": null,
+    "providerAccounts": [
+      {
+        "provider": "google",
+        "providerAccountId": "100517380471003070083"
+      },
+      {
+        "provider": "github",
+        "providerAccountId": "180033392"
+      }
+    ]
+  }
+]
